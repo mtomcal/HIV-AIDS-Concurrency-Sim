@@ -1,0 +1,21 @@
+{
+  "name": "matrix",
+  "version": "0.0.8",
+  "main": "matrix.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ],
+  "homepage": "https://github.com/mparke/matrix",
+  "_release": "0.0.8",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.0.8",
+    "commit": "175e059e12e1748134fb5cacfe826e9151379f62"
+  },
+  "_source": "git://github.com/mparke/matrix.git",
+  "_target": "~0.0.8",
+  "_originalSource": "matrix",
+  "_direct": true
+}

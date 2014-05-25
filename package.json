@@ -2,7 +2,6 @@
   "name": "Concurrency",
   "version": "0.0.1",
   "description": "A Graphical HIV/AIDS simulation with D3.js and AngularJS",
-  "main": "index.js",
   "dependencies": {
     "grunt": "^0.4.5"
   },
