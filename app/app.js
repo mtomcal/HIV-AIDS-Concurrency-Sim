@@ -1,9 +1,78 @@
-(function (Matrix) {
-    'use strict';
-    console.log("Loaded!!!");
-    var matrix = new Matrix(2, [{},2,3,4]);
-    console.log(matrix);
-})(Matrix);
+var defaultData = {
+    "concurrentP": 0.00,
+    "transP": 0.00,
+    "addPartnerP": 0.00
+};
+
+function randInt(max, min) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getRand() {
+    return Math.random();
+}
+
+function Relationships(num_indivs, gender_dist) {
+    this.num_indivs = num_indivs;
+    this.gender_dist = gender_dist;
+    this.indivs = [];
+    this.matrix = {};
+    this.initIndivs();
+    this.initMatrix();
+}
+
+Relationships.prototype.initIndivs = function () {
+    var males = Math.floor(this.num_indivs * this.gender_dist);
+    var females = this.num_indivs - males;
+    for (var i = 0; i < males; i++) {
+        this.indivs.push(new Individual("male"));
+    }
+    for (i = 0; i < females; i++) {
+        this.indivs.push(new Individual("female"));
+    }
+};
+
+Relationships.prototype.initMatrix = function () {
+    var default_matrix = [];
+    for (var i = 0; i < (Math.pow(this.num_indivs, 2)); i++) {
+        default_matrix.push(_.cloneDeep(defaultData));
+    }
+    this.matrix = new Matrix(this.num_indivs, default_matrix);
+};
+
+Relationships.prototype.getAt = function (i, j) {
+    return this.matrix.getAt(i, j);
+};
+
+Relationships.prototype.setAt = function (i, j, obj) {
+    this.matrix.setAt(i, j, obj);
+};
+
+
+Relationships.prototype.testMatrix = function () {
+    for (var i = 0; i < this.num_indivs; i++) {
+        for (var j = 0; j < this.num_indivs; j++) {
+            console.log(this.getAt(i, j));
+        }
+    }
+};
+
+Relationships.prototype.testOneMatrix = function (i, j) {
+    var o = this.getAt(i, j);
+    o.transP = 0.50;
+    this.setAt(i, j, o);
+};
+
+
+function Individual(gender) {
+    this.gender = gender;
+    this.HIV = false;
+}
+
+Individual.prototype.setGender = function(gender) {
+    this.gender = gender;
+};
+
 
 var miserables = {
   "nodes":[                                                           
@@ -366,7 +435,7 @@ angular.module('Concurrency').directive( 'diagram', [
 
             var force = d3.layout.force()
             .charge(-120)
-            .linkDistance(30)
+            .linkDistance(80)
             .size([width, height]);
 
             var svg = d3.select("body").append("svg")
@@ -393,9 +462,10 @@ angular.module('Concurrency').directive( 'diagram', [
 
                 var node = svg.selectAll(".node")
                 .data(graph.nodes)
-                .enter().append("circle")
+                .enter().append("rect")
                 .attr("class", "node")
-                .attr("r", 5)
+                .attr("width", 10)
+                .attr("height", 10)
                 .style("fill", function(d) { return color(d.group); })
                 .call(force.drag);
 
@@ -408,8 +478,8 @@ angular.module('Concurrency').directive( 'diagram', [
                     .attr("x2", function(d) { return d.target.x; })
                     .attr("y2", function(d) { return d.target.y; });
 
-                    node.attr("cx", function(d) { return d.x; })
-                    .attr("cy", function(d) { return d.y; });
+                node.attr("x", function(d) { return d.x; })
+                    .attr("y", function(d) { return d.y; });
                 });
             }, true);
         },

@@ -7,7 +7,7 @@ module.exports = function(grunt) {
         separator: ';'
       },
       dist: {
-        src: ['app/components/matrix/matrix.js', 'app/components/angular/angular.js', 'app/components/d3/d3.js', 'app/*.js'],
+        src: ['app/components/lodash/dist/lodash.js', 'app/components/matrix/matrix.js', 'app/components/angular/angular.js', 'app/components/d3/d3.js', 'app/*.js'],
         dest: 'dist/<%= pkg.name %>.js'
       }
     },

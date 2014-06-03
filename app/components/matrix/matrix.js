@@ -60,6 +60,10 @@
       return this.mx[x][y];
     }
 
+    function setAt(x, y, obj) {
+        this.mx[x][y] = obj;
+    }
+
     function pop(){
       var mx = this.mx,
         yLen = mx.length,
@@ -148,6 +152,7 @@
 
     return function(){
       this.getAt = getAt;
+      this.setAt = setAt;
       this.size = size;
       this.initialize = initialize;
       this.reset = reset;
