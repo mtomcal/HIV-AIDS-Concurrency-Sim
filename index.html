@@ -17,7 +17,9 @@
 <script src="dist/Concurrency.js"></script>
 <div ng-app="Concurrency">
     <div ng-controller="main">
-        <diagram data="miserables" />
+        <diagram ng-model="relations" data="relations" />
+        <button ng-click="timeStep()" name="timestep">Time Step {{months}}</button>
+        <p>{{stats}}</p>
     </div>
 </div>
 </body>
