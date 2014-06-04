@@ -136,16 +136,35 @@ Calculate.prototype.rollDice = function (a, b, obj) {
 
 
 function Simulate() {
-    this.relations = new Relationships(50, 0.50);
-    this.calc = new Calculate(this.relations);
+    var relations = new Relationships(50, 0.50);
+    this.calc = new Calculate(relations);
 }
 
 Simulate.prototype.timeStep = function() {
     this.calc.execute();
-    var indivs = this.calc.rel.indivs;
+    return this.renderModel(this.calc.rel);
+};
+
+Simulate.prototype.renderModel = function (relations) {
+    var model = {
+        "nodes": [],
+        "links": [],
+    };
+    var indivs = relations.indivs;
     for (var i = 0; i < indivs.length; i++) {
-        console.log(indivs[i].gender, indivs[i].HIV);
+        model.nodes.push({"gender": indivs[i].gender, "HIV": indivs[i].HIV});
     }
+    for (i = 0; i < indivs.length; i++) {
+        for (var j = i; j < indivs.length; j++) {
+            if (i != j) {
+                var obj = relations.getAt(i, j);
+                if (obj.relationship === true) {
+                    model.links.push({"source": i, "target": j});
+                }
+            }
+        }
+    }
+    return model;
 };
 
 
