@@ -1,7 +1,7 @@
 var defaultData = {
-    "concurrentP": 0.00,
     "transP": 0.00,
-    "addPartnerP": 0.00
+    "addPartnerP": 0.00,
+    "relationship": false
 };
 
 function randInt(max, min) {
@@ -24,12 +24,15 @@ function Relationships(num_indivs, gender_dist) {
 Relationships.prototype.initIndivs = function () {
     var males = Math.floor(this.num_indivs * this.gender_dist);
     var females = this.num_indivs - males;
-    for (var i = 0; i < males; i++) {
+    for (var i = 0; i < males - 1; i++) {
         this.indivs.push(new Individual("male"));
     }
     for (i = 0; i < females; i++) {
         this.indivs.push(new Individual("female"));
     }
+    var infected = new Individual("male");
+    infected.HIV = true;
+    this.indivs.push(infected);
 };
 
 Relationships.prototype.initMatrix = function () {
@@ -71,6 +74,78 @@ function Individual(gender) {
 
 Individual.prototype.setGender = function(gender) {
     this.gender = gender;
+};
+
+function Calculate(relations) {
+    this.rel = relations;
+}
+
+Calculate.prototype.probOfPartner = function (a, b) {
+    return 0.10;
+};
+
+Calculate.prototype.probOfTransmission = function (a, b) {
+    var baseP = 0.24;
+    if (a.HIV === false && b.HIV === false) {
+        return 0.00;
+    }
+    if (a.HIV === true && b.HIV === true) {
+        return 1.00;
+    }
+    if (a.HIV === true || b.HIV === true) {
+        return 0.24;
+    }
+};
+
+Calculate.prototype.execute = function () {
+    for (var i = 0; i < this.rel.num_indivs; i++) {
+        for (var j = i; j < this.rel.num_indivs; j++) {
+            var obj = this.rel.getAt(i, j);
+            var a = this.rel.indivs[i];
+            var b = this.rel.indivs[j];
+            obj.transP = this.probOfTransmission(a, b);
+            obj.addPartnerP = this.probOfPartner(a, b);
+            obj = this.rollDice(a, b, obj);
+            this.rel.setAt(i, j, obj);
+        }
+    }
+};
+
+Calculate.prototype.rollDice = function (a, b, obj) {
+    var roll = getRand();
+
+    if (obj.relationship === true) {
+        if (roll < obj.transP) {
+            a.HIV = true;
+            b.HIV = true;
+        }
+    }
+    roll = getRand();
+    if (roll < obj.addPartnerP) {
+        if (a.gender !== b.gender) {
+            obj.relationship = true;
+        }
+    } else {
+        if (obj.relationship === true) {
+            obj.relationship = false;
+        }
+    }
+    return obj;
+};
+
+
+
+function Simulate() {
+    this.relations = new Relationships(50, 0.50);
+    this.calc = new Calculate(this.relations);
+}
+
+Simulate.prototype.timeStep = function() {
+    this.calc.execute();
+    var indivs = this.calc.rel.indivs;
+    for (var i = 0; i < indivs.length; i++) {
+        console.log(indivs[i].gender, indivs[i].HIV);
+    }
 };
 
 
