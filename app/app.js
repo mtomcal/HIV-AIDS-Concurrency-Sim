@@ -13,6 +13,7 @@ function getRand() {
 }
 
 function Relationships(num_indivs, gender_dist) {
+    console.log("Relationships init");
     this.num_indivs = num_indivs;
     this.gender_dist = gender_dist;
     this.indivs = [];
@@ -70,22 +71,32 @@ Relationships.prototype.testOneMatrix = function (i, j) {
 function Individual(gender) {
     this.gender = gender;
     this.HIV = false;
+    this.sexActive = false;
 }
 
 Individual.prototype.setGender = function(gender) {
     this.gender = gender;
 };
 
-function Calculate(relations) {
+function Calculate(relations, kwargs) {
     this.rel = relations;
+    if (kwargs !== null) {
+        this.addPartnerP = kwargs.addPartnerP;
+        this.transP = kwargs.transP;
+        this.monogamy = kwargs.monogamy;
+    } else {
+        this.addPartnerP = 0.10;
+        this.transP = 0.24;
+        this.monogamy = false;
+    }
 }
 
 Calculate.prototype.probOfPartner = function (a, b) {
-    return 0.10;
+    return this.addPartnerP;
 };
 
 Calculate.prototype.probOfTransmission = function (a, b) {
-    var baseP = 0.24;
+    var baseP = this.transP;
     if (a.HIV === false && b.HIV === false) {
         return 0.00;
     }
@@ -122,12 +133,21 @@ Calculate.prototype.rollDice = function (a, b, obj) {
     }
     roll = getRand();
     if (roll < obj.addPartnerP) {
-        if (a.gender !== b.gender) {
+        if (a.gender !== b.gender) { 
+            if (this.monogamy === true) {
+                if (a.sexActive !== false || b.sexActive !== false) {
+                    return obj;
+                }
+            }
             obj.relationship = true;
+            a.sexActive = true;
+            b.sexActive = true;
         }
     } else {
         if (obj.relationship === true) {
             obj.relationship = false;
+            a.sexActive = false;
+            b.sexActive = false;
         }
     }
     return obj;
@@ -135,9 +155,9 @@ Calculate.prototype.rollDice = function (a, b, obj) {
 
 
 
-function Simulate() {
+function Simulate(kwargs) {
     var relations = new Relationships(50, 0.50);
-    this.calc = new Calculate(relations);
+    this.calc = new Calculate(relations, kwargs);
 }
 
 Simulate.prototype.timeStep = function() {
@@ -215,14 +235,23 @@ angular.module('Concurrency', []);
 
 angular.module('Concurrency')
 .controller('main', function($scope, $q) {
-    $scope.sim = new Simulate();
+    $scope.sim = new Simulate(null);
     $scope.relations = $scope.sim.timeZero();
     $scope.stats = $scope.sim.getStats();
     $scope.months = 0;
+    $scope.addPartnerP = 0.10;
+    $scope.transP = 0.24;
+    $scope.monogamy = false;
     $scope.timeStep = function () {
         $scope.relations = $scope.sim.timeStep();
         $scope.stats = $scope.sim.getStats();
         $scope.months++;
+    };
+    $scope.resetSim = function() {
+        $scope.sim = new Simulate({"addPartnerP": $scope.addPartnerP, "transP": $scope.transP, "monogamy": $scope.monogamy});
+        $scope.relations = $scope.sim.timeZero();
+        $scope.stats = $scope.sim.getStats();
+        $scope.months = 0;
     };
 });
 
@@ -256,7 +285,6 @@ angular.module('Concurrency').directive( 'diagram', [
             .attr("height", height);
 
             scope.$watch('data', function () {
-                console.log("Data changes");
 
                 var graph = scope.data;
 
