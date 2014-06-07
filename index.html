@@ -20,6 +20,15 @@
         <diagram ng-model="relations" data="relations" />
         <button ng-click="timeStep()" name="timestep">Time Step {{months}}</button>
         <p>{{stats}}</p>
+        <b>Parameters</b>
+        <p>Prob of N+1 Partners
+        <input type="text" ng-model="addPartnerP" />
+        Prob of HIV Transmission
+        <input type="text" ng-model="transP" />
+        Monogamous?
+        <input type="checkbox" ng-model="monogamy">
+        </p>
+        <button ng-click="resetSim()">Reset Simulation</button>
     </div>
 </div>
 </body>
