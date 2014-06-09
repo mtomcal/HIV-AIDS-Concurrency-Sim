@@ -12,10 +12,11 @@ function getRand() {
     return Math.random();
 }
 
-function Relationships(num_indivs, gender_dist) {
+function Relationships(num_indivs, gender_dist, circumcised_dist) {
     console.log("Relationships init");
     this.num_indivs = num_indivs;
     this.gender_dist = gender_dist;
+    this.circumcised_dist = circumcised_dist;
     this.indivs = [];
     this.matrix = {};
     this.initIndivs();
@@ -25,8 +26,14 @@ function Relationships(num_indivs, gender_dist) {
 Relationships.prototype.initIndivs = function () {
     var males = Math.floor(this.num_indivs * this.gender_dist);
     var females = this.num_indivs - males;
+    var num_circ_males = Math.floor(this.circumcised_dist * males);
+    console.log(num_circ_males);
     for (var i = 0; i < males - 1; i++) {
-        this.indivs.push(new Individual("male"));
+        if ( i < num_circ_males) {
+            this.indivs.push(new Individual("male", true));
+        } else {
+            this.indivs.push(new Individual("male"));
+        }
     }
     for (i = 0; i < females; i++) {
         this.indivs.push(new Individual("female"));
@@ -68,8 +75,13 @@ Relationships.prototype.testOneMatrix = function (i, j) {
 };
 
 
-function Individual(gender) {
-    this.gender = gender;
+function Individual() {
+    this.gender = arguments[0];
+    if (arguments.length == 2) {
+        this.circumcised = arguments[1];
+    } else {
+        this.circumcised = false;
+    }
     this.HIV = false;
     this.sexActive = false;
 }
@@ -104,6 +116,9 @@ Calculate.prototype.probOfTransmission = function (a, b) {
         return 1.00;
     }
     if (a.HIV === true || b.HIV === true) {
+        if (a.circumcised === true || b.circumcised === true) {
+            return 0.24 * 0.60; //Circumcision paper (Tobian et al)
+        }
         return 0.24;
     }
 };
@@ -156,7 +171,12 @@ Calculate.prototype.rollDice = function (a, b, obj) {
 
 
 function Simulate(kwargs) {
-    var relations = new Relationships(50, 0.50);
+    var relations = null;
+    if (kwargs !== null) {
+        relations = new Relationships(50, 0.50, kwargs.circumcised_dist);
+    } else {
+        relations = new Relationships(50, 0.50, 0.50);
+    }
     this.calc = new Calculate(relations, kwargs);
 }
 
@@ -215,7 +235,7 @@ Simulate.prototype.renderModel = function (relations) {
     };
     var indivs = relations.indivs;
     for (var i = 0; i < indivs.length; i++) {
-        model.nodes.push({"gender": indivs[i].gender, "HIV": indivs[i].HIV});
+        model.nodes.push({"gender": indivs[i].gender, "HIV": indivs[i].HIV, "circumcised": indivs[i].circumcised});
     }
     for (i = 0; i < indivs.length; i++) {
         for (var j = i; j < indivs.length; j++) {
@@ -241,6 +261,7 @@ angular.module('Concurrency')
     $scope.months = 0;
     $scope.addPartnerP = 0.10;
     $scope.transP = 0.24;
+    $scope.circumcised_dist = 0.50;
     $scope.monogamy = false;
     $scope.timeStep = function () {
         $scope.relations = $scope.sim.timeStep();
@@ -248,7 +269,7 @@ angular.module('Concurrency')
         $scope.months++;
     };
     $scope.resetSim = function() {
-        $scope.sim = new Simulate({"addPartnerP": $scope.addPartnerP, "transP": $scope.transP, "monogamy": $scope.monogamy});
+        $scope.sim = new Simulate({"addPartnerP": $scope.addPartnerP, "circumcised_dist": $scope.circumcised_dist, "transP": $scope.transP, "monogamy": $scope.monogamy});
         $scope.relations = $scope.sim.timeZero();
         $scope.stats = $scope.sim.getStats();
         $scope.months = 0;
@@ -267,9 +288,13 @@ angular.module('Concurrency').directive( 'diagram', [
             var width = 960,
             height = 500;
 
-            var color = function (hiv) {
-                if (hiv === true) {
+            var color = function (hiv, circumcised) {
+                if (hiv === true && circumcised === true) {
+                    return "#FF6258";
+                } else if (hiv === true) {
                     return "#800900";
+                } else if (circumcised === true) {
+                    return "#4A8DFF";
                 } else {
                     return "#001663";
                 }
@@ -326,7 +351,7 @@ angular.module('Concurrency').directive( 'diagram', [
                 .attr("width", 10)
                 .attr("height", 10)
                 .style("fill", function(d) { 
-                    return color(d.HIV); 
+                    return color(d.HIV, d.circumcised); 
                 })
                 .call(force.drag);
 
