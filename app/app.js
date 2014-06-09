@@ -117,7 +117,7 @@ Calculate.prototype.probOfTransmission = function (a, b) {
     }
     if (a.HIV === true || b.HIV === true) {
         if (a.circumcised === true || b.circumcised === true) {
-            return 0.24 * 0.60; //Circumcision paper (Tobian et al)
+            return 0.24 - (0.24 * 0.60); //Circumcision paper (Tobian et al)
         }
         return 0.24;
     }
